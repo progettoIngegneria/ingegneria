@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.LinkedList;
 
@@ -52,40 +51,47 @@ public class EventiDaoImplementazione implements EventiDAO {
 			double prezzo, int biglietti) {
 		LinkedList<Eventi> listaEventi=new LinkedList<Eventi>();
 		try {
-			Statement stm= con.createStatement();
-			ResultSet rs;
-			if(nome==null && descr==null && citta==null && categoria==null && data1==null && data2==null && prezzo==0 && biglietti==0) rs = stm.executeQuery("select * from eventi ");
+			PreparedStatement prepared ;// = con.prepareStatement("query");
+			ResultSet res;// = prepared.executeQuery();
+			
+			if(nome.equals("null") && descr.equals("null") && citta.equals("null") && categoria.equals("null") && data1 == null && data2 == null && prezzo==0 && biglietti==0) {
+				prepared = con.prepareStatement("select * from eventi ");
+				res = prepared.executeQuery();
+			}
 			else {
 				String query="select * from eventi where ";
-				if(nome != null) query = query + "Nome='"+nome+"'";
-				if(descr != null) query = query + " && Descrizione='"+descr+"'";
-				if(citta != null) query = query + " && Citta='"+citta+"'";
-				if(categoria != null) query = query + " && Catehoria='"+categoria+"'";
+				if(!nome.equals("null")) query = query + "Nome='"+nome+"'";
+				if(!descr.equals("null")) query = query + " && Descrizione='"+descr+"'";
+				if(!citta.equals("null")) query = query + " && Citta='"+citta+"'";
+				if(!categoria.equals("null")) query = query + " && Categoria='"+categoria+"'";
 				if(data1 != null && data2 != null) query = query + " && (Data BETWEEN '"+data1+"' AND '"+data2 +"')";
 				else {
 					if(data1 != null) query = query + " && Data >= '"+data1+"'";
-					else query = query + " && Data <= '"+data2+"'";
+					else if (data2 != null) query = query + " && Data <= '"+data2+"'";
 				}
 				if(prezzo != 0) query = query + " && Prezzo='"+prezzo+"'";
 				if(biglietti != 0) query = query + " && BigliettiDisponibili='"+biglietti+"'";
-				rs = stm.executeQuery(query);
+				System.out.println("Query da eseguire: " + query);
+				prepared = con.prepareStatement(query);
+				res = prepared.executeQuery();
 			}
-			Eventi temp=new Eventi();
-				while (rs.next()) {
-					temp.setNome(rs.getString("Nome"));//
-					temp.setCategoria(rs.getString("Categoria"));//
-					temp.setBiglietti(rs.getInt("BigliettiDisponibili"));
-					temp.setCitta(rs.getString("Citta"));//
-					temp.setData(rs.getDate("Data"));//
-					temp.setDescr(rs.getString("Descrizione"));//
-					temp.setCodice(rs.getInt("Codice"));
-					temp.setPrezzo(rs.getDouble("Prezzo"));//
+			Eventi temp;// =new Eventi();
+				while (res.next()) {
+					temp = new Eventi();
+					temp.setNome(res.getString("Nome"));
+					temp.setCategoria(res.getString("Categoria"));
+					temp.setBiglietti(res.getInt("BigliettiDisponibili"));
+					temp.setCitta(res.getString("Citta"));
+					temp.setData(res.getDate("Data"));
+					temp.setDescr(res.getString("Descrizione"));
+					temp.setCodice(res.getInt("Codice"));
+					temp.setPrezzo(res.getDouble("Prezzo"));
 					listaEventi.add(temp);
 				}
 		}catch(SQLException e) {
-			e.printStackTrace();
+			System.out.println("Errore query SQL:" + e.getErrorCode());
 		}catch(Exception e) {
-			e.printStackTrace();
+			System.out.println("Errore funzione ricerca:" + e.getMessage());
 		}
 		return listaEventi;
 	}
