@@ -11,7 +11,6 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import DAO.AcquistoBigliettiDAO;
@@ -107,8 +106,8 @@ public class ServerApplicativo {
 			LocalDate data = LocalDate.parse(date, formatter);
 			eventiStore.Create(connessioneDB, in.readLine(), in.readLine(), in.readLine(), in.readLine(), data, Double.parseDouble(in.readLine()), Integer.parseInt(in.readLine()), in.readLine());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Errore IO:" + e.getMessage());
+			out.println("Errore");//informo il client dell'errore verificatosi
 		}
 		//invio messaggio di conferma dell'inserimento del nuovo evento
 		out.println("ok");
@@ -127,8 +126,8 @@ public class ServerApplicativo {
 			eventiStore.Create(connessioneDB, in.readLine(),in.readLine(), in.readLine(), in.readLine(), data, Double.parseDouble(in.readLine()), Integer.parseInt(in.readLine()),in.readLine());
 		} catch (IOException e) {
 			//invio messaggio errore
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			out.println("Errore");//informo il client dell'errore verificatosi
+			System.out.println("Errore IO:" + e.getMessage());
 		}
 		//invio messaggio di avvenuta modifica
 	}
@@ -140,33 +139,40 @@ public class ServerApplicativo {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/MM/yyyy"); //formattazione
 		//prima data
 		String tempData;
+		LocalDate data1, data2;
 		try {
 			tempData = in.readLine();
-			//convert String to LocalDate
-			LocalDate data1 = LocalDate.parse(tempData, formatter);
+			if(!tempData.equals("null")) {
+				//convert String to LocalDate
+				data1 = LocalDate.parse(tempData, formatter);
+			} else data1 = null;
 			//seconda data
 			tempData = in.readLine();
-			LocalDate data2 = LocalDate.parse(tempData, formatter);
+			if(!tempData.equals("null")) {
+				data2 = LocalDate.parse(tempData, formatter);
+			} else data2 = null;
 			listaEventi = eventiStore.Research(connessioneDB, in.readLine(), in.readLine(), in.readLine(), in.readLine(), data1, data2, Double.parseDouble(in.readLine()), Integer.parseInt(in.readLine()));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			System.out.println("Errore IO:" + e.getMessage());
 			//invio messaggio di errore
-			out.println("Errore");
+			out.println("Errore");//informo il client dell'errore verificatosi
 		}
 		//invio lista eventi all'applicativo
-		Iterator<Eventi> itr = listaEventi.iterator();
-		while(itr.hasNext()) {
-			Eventi temp = itr.next();
-			//mettere tutti i campi
-			out.println(temp.getNome());
-			out.println(temp.getDescr());
-			out.println(temp.getCategoria());
-			out.println(temp.getCitta());
-			out.print(temp.getData());
-			out.println(temp.getBiglietti());
-			out.println(temp.getPrezzo());
-			out.println(temp.getNomeImmagine());
+		if (listaEventi == null) {
+			System.out.println("No Result");
+		}
+		out.println("ok");
+		for(Eventi i : listaEventi) {
+			out.println(i.getCodice());//codice
+			out.println(i.getNome());//nome
+			out.println(i.getDescr());//descrizione
+			out.println(i.getCitta());//citta
+			out.println(i.getCategoria());//categoria
+			out.println(i.getData());//data
+			out.println(i.getPrezzo());//prezzo
+			out.println(i.getBiglietti());//biglietti
+			out.println(i.getNomeImmagine());//nomeImmagine
+			out.println("si");//informo il client che ci sono ancora record da inviare
 		}
 	}
 	
@@ -175,9 +181,8 @@ public class ServerApplicativo {
 		try {
 			eventiStore.Delete(connessioneDB, Integer.parseInt(in.readLine()));
 		} catch (NumberFormatException | IOException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
-			out.println("Errore");
+			System.out.println("Errore cancellazione:"+ e.getMessage());
+			out.println("Errore");//informo il client dell'errore verificatosi
 		}
 	}
 	
